@@ -1,0 +1,13 @@
+Final Project City Scene
+
+Based on Willem Schreuder's ex05 from Fall 2014
+Willem A. (Vlakkies) Schreuder
+
+with Frame Buffer Depth Texture by Jay Kominek
+
+to run:
+make
+./ex05
+
+things to add:
+I am meeting with Stanislaw tomorrow to try to get shadows from multiple lights working. I intend to fix the small bugs (shadow showing on building). I plan to add a few more textures, more objects and normal maps (on lamp post, trash can, hydrant).
