@@ -8,7 +8,7 @@
  *  m/M        Show/hide shadow map
  *  o/O        Cycle through objects
  *  +/-        Change light elevation
- *  []         Change light position
+ *  []         Change lightZ position
  *  s/S        Start/stop light movement
  *  l/L        Toggle teapot lid stretch
  *  <>         Decrease/increase number of slices in objects
@@ -38,7 +38,7 @@ int          zh=0;      // Light azimuth
 float        Ylight=2;  // Elevation of light
 float        Lpos[4];   // Light0 position
 float        Lpos1[4];   // Light1 position
-
+float        time1;
 
 unsigned int framebuf=0;// Frame buffer id
 double       Svec[4];   // Texture planes S
@@ -166,12 +166,48 @@ void Scene(int light)
 	 glBindTexture(GL_TEXTURE_2D, tex2d[6]);
    int color[3] = {1,1,1};
 
-   //  Draw objects         x    y   z          th,ph    dims
-	 //glBindTexture(GL_TEXTURE_2D,tex2d[5]);
-   //Trash(1.3,.38,-.5,.15,.2,.15,0);
-   //Bicycle(0,0,0,.25,.25,.25,230,color,20);
-   //Torus(+0.5,-0.8,0.0 ,        0,zh  , 0.5,0.2);
-   //Teapot(-0.5,-0.5,0.0 ,     2*zh, 0  , 0.25   );
+
+   double quad1[2][4][3] = {{{0.1,-2,.3},{0.1,-1.4,.3},{-3.7,-1.4,.3},{-3.7,-2,.3}},{{-1,-1,.3},{0.1,-1.4,.3},{-3.7,-1.4,.3},{-2,-1,.3}}}; //quad 1 for light 1/3
+
+   double shadow[4][3];
+   int i;
+   int j;
+   double O1[3] = {Lpos[0],Lpos[1],Lpos[2]};
+
+   for (i = 0; i < 1; i++){ //quads
+      for (j = 0; j < 4; j++){ //points
+         double D1[3] = {quad1[i][j][0] - O1[0], quad1[i][j][1] - O1[1],quad1[i][j][2] - O1[2]};
+         double lengthVec = sqrt(D1[0]*D1[0] + D1[1]*D1[1] + D1[2]*D1[2]);
+         double D1Normal[3] = {D1[0]/lengthVec, D1[1]/lengthVec, D1[2]/lengthVec};
+         double vectorTime = (-1.99 - O1[1])/D1[1];
+         double P1[3] = {O1[0] + D1[0]*vectorTime, -1.99, O1[2] + D1[2]*vectorTime};
+         shadow[j][0] = P1[0];
+         shadow[j][1] = P1[1];
+         shadow[j][2] = P1[2];
+
+
+      }
+      glBegin(GL_QUADS);
+      glVertex4f(shadow[0][0],shadow[0][1],shadow[0][2],.3);
+      glVertex4f(shadow[1][0],shadow[1][1],shadow[1][2],.3);
+      glVertex4f(shadow[2][0],shadow[2][1],shadow[2][2],.3);
+      glVertex4f(shadow[3][0],shadow[3][1],shadow[3][2],.3);
+      glEnd();
+   }
+
+   glBegin(GL_QUADS);
+   glVertex3f(quad1[0][0][0],quad1[0][0][1],quad1[0][0][2]);
+   glVertex3f(quad1[0][1][0],quad1[0][1][1],quad1[0][1][2]);
+   glVertex3f(quad1[0][2][0],quad1[0][2][1],quad1[0][2][2]);
+   glVertex3f(quad1[0][3][0],quad1[0][3][1],quad1[0][3][2]);
+
+   glVertex3f(quad1[1][0][0],quad1[1][0][1],quad1[1][0][2]);
+   glVertex3f(quad1[1][1][0],quad1[1][1][1],quad1[1][1][2]);
+   glVertex3f(quad1[1][2][0],quad1[1][2][1],quad1[1][2][2]);
+   glVertex3f(quad1[1][3][0],quad1[1][3][1],quad1[1][3][2]);
+   glEnd();
+
+
 
 	 glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[6]);
@@ -208,9 +244,12 @@ void Scene(int light)
 
 	 glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[6]);
-	 Car(-10+(.1*(zh % 300)),-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
-	 //Car(0,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
-
+   //float x = -10 * time1*4;
+   //printf ("%f", x);
+   //while (x > 10) x -= 20;
+   //Car(x,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
+	 Car(0,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
+   //get dt
 	 Bicycle(-2.5,-1.85,-5.5,.45,.45,.45,300,car1Color[1],70);
 
 	 Lightpost(1.5,-1.2,-6.6,.5,.5,.5,90,1);
@@ -685,7 +724,6 @@ void InitMap()
    //  Make sure this all worked
    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) Fatal("Error setting up frame buffer\n");
    glBindFramebuffer(GL_FRAMEBUFFER,0);
-
    //  Check if something went wrong
    ErrCheck("InitMap");
 
@@ -698,15 +736,24 @@ void InitMap()
  */
 void idle(int k)
 {
-   //  Elapsed time in seconds
+   static float lastTime = -1;
    double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+
+   //  Elapsed time in seconds
+   if (lastTime == -1){
+     lastTime = t;
+   }
+   float dt2 = t - lastTime;
    zh = fmod(90*t,1440.0);
+
    //  Update shadow map
    ShadowMap();
    //  Tell GLUT it is necessary to redisplay the scene
    glutPostRedisplay();
    //  Schedule update
    if (move) glutTimerFunc(dt,idle,0);
+   time1 = t;
+   lastTime = t;
 }
 
 /*
