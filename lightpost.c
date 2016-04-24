@@ -115,7 +115,7 @@ void Lightpost(double x, double y, double z, double dx, double dy, double dz, do
 
 
 
-	glColor3f(1,1,1);
+	glColor3f(1,1,.5);
 	ball(-1,4,0,.2);
 
 	glPopMatrix();

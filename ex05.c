@@ -30,7 +30,7 @@ int          box=0;     // Display enclosing box
 int          n=8;       // Number of slices
 int          th=-26;    // Azimuth of view angle
 int          ph=+23;    // Elevation of view angle
-int          tex2d[22];  // Textures (names)
+int          tex2d[25];  // Textures (names)
 int          dt=50;     // Timer period (ms)
 double       asp=1;     // Aspect ratio
 double       dim=3;     // Size of world
@@ -38,11 +38,13 @@ int          zh=0;      // Light azimuth
 float        Ylight=2;  // Elevation of light
 float        Lpos[4];   // Light0 position
 float        Lpos1[4];   // Light1 position
+float        Lpos2[4];   // Light1 position
+
 float        time1;
 
 unsigned int framebuf=0;// Frame buffer id
 double       Svec[4];   // Texture planes S
-double car1Color[3][3] = {{0,0,.7},{1,0,0},{0,0,.7}}; //car 1 color
+double car1Color[3][3] = {{0,0,.7},{1,0,0},{0,1,1}}; //car 1 color
 double       Tvec[4];   // Texture planes T
 double       Rvec[4];   // Texture planes R
 double       Qvec[4];   // Texture planes Q
@@ -56,6 +58,42 @@ char* text[]={"Shadows","Shadow Map"};
 #define MAXN 64    // Maximum number of slices (n) and points in a polygon
 
 
+
+static void Cylinder(double x, double y, double z, double dx, double dy, double dz, double th,double xh)
+{
+
+	int i,k;
+	glPushMatrix();
+
+	glTranslated(x,y,z);
+	glRotated(th,1,0,0);
+	glRotated(xh,0,1,0);
+	glScaled(dx,dy,dz);
+
+	//front and back
+	for (i=1;i>=-1;i-=2){
+		glNormal3f(0,0,i);
+		glBegin(GL_TRIANGLE_FAN);
+		glTexCoord2f(.5,.5);
+		glVertex3f(0,0,i);
+		for (k=0;k<=360;k+=10){
+			glTexCoord2f(0.5*Cos(k)+.5,.5*Sin(k)+.5);
+			glVertex3f(i*Cos(k),Sin(k),i);
+		}
+
+		glEnd();
+	}
+	//Edge
+	glBegin(GL_QUAD_STRIP);
+	for (k=0;k<=360;k+=10){
+		glNormal3f(Cos(k),Sin(k),0);
+		glTexCoord2f(0,0.5*k); glVertex3f(Cos(k),Sin(k),1);
+		glTexCoord2f(1,.5*k); glVertex3f(Cos(k),Sin(k),-1);
+	}
+	glEnd();
+	glPopMatrix();
+
+}
 
 
 /*
@@ -99,17 +137,23 @@ static void Wall(float x,float y,float z, float th,float ph , float Sx,float Sy,
  */
 static void Light(int light)
 {
-	//  Set light position (back right lightpost)
+	//  Set light position (close lightpost)
 	Lpos1[0] = 1.5;
-	Lpos1[1] = 1;
-	Lpos1[2] = -6.1;
+	Lpos1[1] = 3.5;
+	Lpos1[2] = 2;
 	Lpos1[3] = 1;
 
-	//  Set light position (close right lightpost)
+	//  Set light position (back right lightpost)
 	Lpos[0] = 1.5;
-	Lpos[1] = 5;
+	Lpos[1] = 3.5;
 	Lpos[2] = -6.1;
 	Lpos[3] = 1;
+
+  //back left lightpost
+  Lpos2[0] = -10;
+  Lpos2[1] = 3.5;
+  Lpos2[2] = -6.1;
+  Lpos2[3] = 1;
 	 /*
    Lpos[0] = 2*Cos(zh);
    Lpos[1] = Ylight;
@@ -162,51 +206,6 @@ void Scene(int light)
       glEnable(GL_TEXTURE_2D);
       glBindTexture(GL_TEXTURE_2D,tex2d[2]);
    }
-	 glActiveTexture(GL_TEXTURE2);
-	 glBindTexture(GL_TEXTURE_2D, tex2d[6]);
-   int color[3] = {1,1,1};
-
-
-   double quad1[2][4][3] = {{{0.1,-2,.3},{0.1,-1.4,.3},{-3.7,-1.4,.3},{-3.7,-2,.3}},{{-1,-1,.3},{0.1,-1.4,.3},{-3.7,-1.4,.3},{-2,-1,.3}}}; //quad 1 for light 1/3
-
-   double shadow[4][3];
-   int i;
-   int j;
-   double O1[3] = {Lpos[0],Lpos[1],Lpos[2]};
-
-   for (i = 0; i < 1; i++){ //quads
-      for (j = 0; j < 4; j++){ //points
-         double D1[3] = {quad1[i][j][0] - O1[0], quad1[i][j][1] - O1[1],quad1[i][j][2] - O1[2]};
-         double lengthVec = sqrt(D1[0]*D1[0] + D1[1]*D1[1] + D1[2]*D1[2]);
-         double D1Normal[3] = {D1[0]/lengthVec, D1[1]/lengthVec, D1[2]/lengthVec};
-         double vectorTime = (-1.99 - O1[1])/D1[1];
-         double P1[3] = {O1[0] + D1[0]*vectorTime, -1.99, O1[2] + D1[2]*vectorTime};
-         shadow[j][0] = P1[0];
-         shadow[j][1] = P1[1];
-         shadow[j][2] = P1[2];
-
-
-      }
-      glBegin(GL_QUADS);
-      glVertex4f(shadow[0][0],shadow[0][1],shadow[0][2],.3);
-      glVertex4f(shadow[1][0],shadow[1][1],shadow[1][2],.3);
-      glVertex4f(shadow[2][0],shadow[2][1],shadow[2][2],.3);
-      glVertex4f(shadow[3][0],shadow[3][1],shadow[3][2],.3);
-      glEnd();
-   }
-
-   glBegin(GL_QUADS);
-   glVertex3f(quad1[0][0][0],quad1[0][0][1],quad1[0][0][2]);
-   glVertex3f(quad1[0][1][0],quad1[0][1][1],quad1[0][1][2]);
-   glVertex3f(quad1[0][2][0],quad1[0][2][1],quad1[0][2][2]);
-   glVertex3f(quad1[0][3][0],quad1[0][3][1],quad1[0][3][2]);
-
-   glVertex3f(quad1[1][0][0],quad1[1][0][1],quad1[1][0][2]);
-   glVertex3f(quad1[1][1][0],quad1[1][1][1],quad1[1][1][2]);
-   glVertex3f(quad1[1][2][0],quad1[1][2][1],quad1[1][2][2]);
-   glVertex3f(quad1[1][3][0],quad1[1][3][1],quad1[1][3][2]);
-   glEnd();
-
 
 
 	 glActiveTexture(GL_TEXTURE0);
@@ -214,6 +213,14 @@ void Scene(int light)
 	 glActiveTexture(GL_TEXTURE2);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[10]);
 	 FireHydrant(-1,-1.9,-6.8,.3,.3,.3,90);
+   FireHydrant(-13.5,-1.9,-6.8,.3,.3,.3,90);
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, tex2d[5]);
+
+   Trash(-5,-1.9,-7.8,.2,.6,.2,90);
+   Trash(-2.7,-1.9,2.2,.2,.6,.2,90);
+
 	// FireHydrant(0,0,2,.3,.3,.3,90);
 	 glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[12]);
@@ -244,18 +251,27 @@ void Scene(int light)
 
 	 glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[6]);
-   //float x = -10 * time1*4;
-   //printf ("%f", x);
-   //while (x > 10) x -= 20;
-   //Car(x,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
-	 Car(0,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
+   glActiveTexture(GL_TEXTURE2);
+   glBindTexture(GL_TEXTURE_2D,tex2d[6]);
+   float x = -10 + time1*4;
+   //printf ("%f\n", x);
+   while (x > 10) x -= 20;
+   Car(x,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
+	 //Car(0,-1.68,-1,.08,.08,.08,270,.5*zh,car1Color[0], tex2d[19], tex2d[20]);
    //get dt
 	 Bicycle(-2.5,-1.85,-5.5,.45,.45,.45,300,car1Color[1],70);
+   Bicycle(-2.5,-1.45,2.5,.45,.45,.45,0,car1Color[2],15);
+   glColor3f(0,0,0);
+   Cylinder(-2,2.8,-9,.02,.02,1,90,0);
 
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D,tex2d[6]);
+   glActiveTexture(GL_TEXTURE2);
+	 glBindTexture(GL_TEXTURE_2D,tex2d[10]);
 	 Lightpost(1.5,-1.2,-6.6,.5,.5,.5,90,1);
 	 Lightpost(1.5,-1.2,1.4,.4,.4,.4,270,1);
 	 Lightpost(-11.85,-1.2,-6.6,.5,.5,.5,90,1);
-
+   glColor3f(1,1,1);
 	 glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D, tex2d[14]);
 	 glActiveTexture(GL_TEXTURE2);
@@ -365,6 +381,137 @@ void Scene(int light)
 	 Sidewalk(5,-1.9,-6.5,5,5,5,270,90);
 	 Sidewalk(5,-1.9,-8.5,5,5,5,270,90);
 	 Sidewalk(5,-1.9,-10.5,5,5,5,270,90);
+
+   glActiveTexture(GL_TEXTURE2);
+   glBindTexture(GL_TEXTURE_2D, tex2d[6]);
+   int color[3] = {1,1,1};
+
+   //double quad1[4][4][3] = {{{0,-2,0},{0,-1.4,0},{-3.7,-1.4,0},{-3.7,-2,0}},{{-1.7,-1,0},{-1.3,-1.4,0},{-3.2,-1.4,0},{-2.65,-1,0}},{{-3.7,-2,0},{-3.7,-1.4,0},{-3.7,-1.4,-.8},{-3.7,-2,-.8}},{{0,-2,0},{0,-1.4,0},{0,-1.4,-.8},{0,-2,-.8}}}; //quads for light 1/3
+   //double quad2[4][4][3] = {{{0,-2,-.8},{0,-1.4,-.8},{-3.7,-1.4,-.8},{-3.7,-2,-.8}},{{-1.7,-1,-.8},{-1.3,-1.4,-.8},{-3.2,-1.4,-.8},{-2.65,-1,-.8}},{{-3.7,-2,0},{-3.7,-1.4,0},{-3.7,-1.4,-.8},{-3.7,-2,-.8}},{{0,-2,0},{0,-1.4,0},{0,-1.4,-.8},{0,-2,-.8}}}; //quads for light 2
+
+   double quad1[4][4][3] = {{{x,-2,0},{x,-1.4,0},{-3.7+x,-1.4,0},{-3.7+x,-2,0}},{{-1.7 + x,-1,0},{-1.3+x,-1.4,0},{-3.2+x,-1.4,0},{-2.65+x,-1,0}},{{-3.7+x,-2,0},{-3.7+x,-1.4,0},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{0+x,-2,0},{0+x,-1.4,0},{0+x,-1.4,-.8},{0+x,-2,-.8}}}; //quads for light 1/3
+   double quad2[4][4][3] = {{{x,-2,-.8},{x,-1.4,-.8},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{-1.7 +x,-1,-.8},{-1.3+x,-1.4,-.8},{-3.2+x,-1.4,-.8},{-2.65+x,-1,-.8}},{{-3.7+x,-2,0},{-3.7+x,-1.4,0},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{0+x,-2,0},{0+x,-1.4,0},{0+x,-1.4,-.8},{0+x,-2,-.8}}}; //quads for light 2
+
+   double shadow[4][3];
+   int i;
+   int j;
+   double O1[3] = {Lpos[0],Lpos[1],Lpos[2]};
+
+   for (i = 0; i < 4; i++){ //quads
+      for (j = 0; j < 4; j++){ //points
+         double D1[3] = {quad1[i][j][0] - O1[0], quad1[i][j][1] - O1[1],quad1[i][j][2] - O1[2]};
+         double lengthVec = sqrt(D1[0]*D1[0] + D1[1]*D1[1] + D1[2]*D1[2]);
+         double D1Normal[3] = {D1[0]/lengthVec, D1[1]/lengthVec, D1[2]/lengthVec};
+         double vectorTime = (-1.99 - O1[1])/D1[1];
+         double P1[3] = {O1[0] + D1[0]*vectorTime, -1.99, O1[2] + D1[2]*vectorTime};
+         shadow[j][0] = P1[0];
+         shadow[j][1] = P1[1];
+         shadow[j][2] = P1[2];
+      }
+      //glDisable(GL_DEPTH_TEST);
+      glColor4f(0,0,0,0);
+
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+      glClearColor(0.0,0.0,0.0,0.0);
+      glBegin(GL_QUADS);
+
+      glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
+      glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
+      glVertex3f(shadow[2][0],shadow[2][1],shadow[2][2]);
+      glVertex3f(shadow[3][0],shadow[3][1],shadow[3][2]);
+      glEnd();
+      glDisable(GL_BLEND);
+      //glEnable(GL_DEPTH_TEST);
+
+   }
+
+   double O2[3] = {Lpos1[0],Lpos1[1],Lpos1[2]};
+
+   for (i = 0; i < 4; i++){ //quads
+      for (j = 0; j < 4; j++){ //points
+         double D2[3] = {quad2[i][j][0] - O2[0], quad2[i][j][1] - O2[1],quad2[i][j][2] - O2[2]};
+         double lengthVec = sqrt(D2[0]*D2[0] + D2[1]*D2[1] + D2[2]*D2[2]);
+         double D2Normal[3] = {D2[0]/lengthVec, D2[1]/lengthVec, D2[2]/lengthVec};
+         double vectorTime = (-1.99 - O2[1])/D2[1];
+         double P2[3] = {O2[0] + D2[0]*vectorTime, -1.99, O2[2] + D2[2]*vectorTime};
+         shadow[j][0] = P2[0];
+         shadow[j][1] = P2[1];
+         shadow[j][2] = P2[2];
+      }
+      //glDisable(GL_DEPTH_TEST);
+      glColor3f(0,0,0);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBegin(GL_QUADS);
+
+      glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
+      glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
+      glVertex3f(shadow[2][0],shadow[2][1],shadow[2][2]);
+      glVertex3f(shadow[3][0],shadow[3][1],shadow[3][2]);
+      glEnd();
+      //glDisable(GL_BLEND);
+      //glEnable(GL_DEPTH_TEST);
+
+   }
+/*
+   double O3[3] = {Lpos2[0],Lpos2[1],Lpos2[2]};
+
+   for (i = 0; i < 4; i++){ //quads
+      for (j = 0; j < 4; j++){ //points
+         double D3[3] = {quad1[i][j][0] - O3[0], quad1[i][j][1] - O3[1],quad1[i][j][2] - O3[2]};
+         double lengthVec = sqrt(D3[0]*D3[0] + D3[1]*D3[1] + D3[2]*D3[2]);
+         double D3Normal[3] = {D3[0]/lengthVec, D3[1]/lengthVec, D3[2]/lengthVec};
+         double vectorTime = (-1.99 - O3[1])/D3[1];
+         double P3[3] = {O3[0] + D3[0]*vectorTime, -1.99, O3[2] + D3[2]*vectorTime};
+         shadow[j][0] = P3[0];
+         shadow[j][1] = P3[1];
+         shadow[j][2] = P3[2];
+      }
+      //glDisable(GL_DEPTH_TEST);
+      glColor4f(0,0,0,0);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBegin(GL_QUADS);
+
+      glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
+      glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
+      glVertex3f(shadow[2][0],shadow[2][1],shadow[2][2]);
+      glVertex3f(shadow[3][0],shadow[3][1],shadow[3][2]);
+      glEnd();
+      glDisable(GL_BLEND);
+      //glEnable(GL_DEPTH_TEST);
+
+   }
+*/
+
+  /*
+
+   glBegin(GL_QUADS);
+   glVertex3f(quad1[0][0][0],quad1[0][0][1],quad1[0][0][2]);
+   glVertex3f(quad1[0][1][0],quad1[0][1][1],quad1[0][1][2]);
+   glVertex3f(quad1[0][2][0],quad1[0][2][1],quad1[0][2][2]);
+   glVertex3f(quad1[0][3][0],quad1[0][3][1],quad1[0][3][2]);
+
+   glVertex3f(quad1[1][0][0],quad1[1][0][1],quad1[1][0][2]);
+   glVertex3f(quad1[1][1][0],quad1[1][1][1],quad1[1][1][2]);
+   glVertex3f(quad1[1][2][0],quad1[1][2][1],quad1[1][2][2]);
+   glVertex3f(quad1[1][3][0],quad1[1][3][1],quad1[1][3][2]);
+
+   glVertex3f(quad2[0][0][0],quad2[0][0][1],quad2[0][0][2]);
+   glVertex3f(quad2[0][1][0],quad2[0][1][1],quad2[0][1][2]);
+   glVertex3f(quad2[0][2][0],quad2[0][2][1],quad2[0][2][2]);
+   glVertex3f(quad2[0][3][0],quad2[0][3][1],quad2[0][3][2]);
+
+   glVertex3f(quad2[1][0][0],quad2[1][0][1],quad2[1][0][2]);
+   glVertex3f(quad2[1][1][0],quad2[1][1][1],quad2[1][1][2]);
+   glVertex3f(quad2[1][2][0],quad2[1][2][1],quad2[1][2][2]);
+   glVertex3f(quad2[1][3][0],quad2[1][3][1],quad2[1][3][2]);
+
+   glEnd();
+
+  */
+
    glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D, tex2d[18]);
    glActiveTexture(GL_TEXTURE2);
@@ -425,6 +572,10 @@ void display()
    glutSolidSphere(0.03,10,10);
    glPopMatrix();
 
+   glPushMatrix();
+   glTranslated(Lpos2[0],Lpos2[1],Lpos2[2]);
+   glutSolidSphere(0.03,10,10);
+   glPopMatrix();
    glUseProgram(shader2);
 
    //  Enable shader program
@@ -884,7 +1035,7 @@ int main(int argc,char* argv[])
 	 tex2d[7] = LoadTexBMP("road.bmp");
 	 tex2d[8] = LoadTexBMP("roadNormal.bmp");
 	 tex2d[9] = LoadTexBMP("brick.bmp");
-	 tex2d[10] = LoadTexBMP("linesNormal.bmp");
+	 tex2d[10] = LoadTexBMP("hydrantNormal.bmp");
 	 tex2d[11] = LoadTexBMP("brickNormal.bmp");
 	 tex2d[12] = LoadTexBMP("door.bmp");
 	 tex2d[13] = LoadTexBMP("doorNormal.bmp");
@@ -895,6 +1046,7 @@ int main(int argc,char* argv[])
    tex2d[18] = LoadTexBMP("night.bmp");
    tex2d[19] = LoadTexBMP("wheel.bmp");
    tex2d[20] = LoadTexBMP("wheeledge.bmp");
+
    // Enable Z-buffer
    glEnable(GL_DEPTH_TEST);
    glDepthFunc(GL_LEQUAL);
@@ -902,7 +1054,6 @@ int main(int argc,char* argv[])
 
    //  Initialize texture map
    shader = CreateShaderProg("shadow.vert","shadow.frag");
-   shader2 = CreateShaderProg("particle.vert", "particle.frag");
    //  Initialize texture map
    InitMap();
    //  Pass control to GLUT so it can interact with the user
