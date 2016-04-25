@@ -369,7 +369,7 @@ void Scene(int light)
    glBindTexture(GL_TEXTURE_2D,tex2d[7]);
 	 glActiveTexture(GL_TEXTURE2);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[8]);
-   glColor3f(1.0,1.0,1.0);
+   glColor4f(1.0,1.0,1.0,1);
    for (k=-1;k<=box;k+=2)
       Wall(-4,0,1.5, 90,90*k , 2*8,2*8,2*box?6:2 , 4);
    //  Crate texture for walls
@@ -409,12 +409,14 @@ void Scene(int light)
          shadow[j][2] = P1[2];
       }
       //glDisable(GL_DEPTH_TEST);
-      glColor4f(0,0,0,0);
+			glColor4f(1.0,1.0,1.0,1);
 
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
+
+		  glEnable(GL_BLEND);
       glClearColor(0.0,0.0,0.0,0.0);
       glBegin(GL_QUADS);
+			glColor4f(.2,.2,.2,.5);
 
       glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
       glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
