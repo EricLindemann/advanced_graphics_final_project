@@ -150,7 +150,7 @@ static void Light(int light)
 	Lpos[3] = 1;
 
   //back left lightpost
-  Lpos2[0] = -10;
+  Lpos2[0] = -10.5;
   Lpos2[1] = 3.5;
   Lpos2[2] = -6.1;
   Lpos2[3] = 1;
@@ -369,7 +369,7 @@ void Scene(int light)
    glBindTexture(GL_TEXTURE_2D,tex2d[7]);
 	 glActiveTexture(GL_TEXTURE2);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[8]);
-   glColor4f(1.0,1.0,1.0,1);
+   glColor4f(1.0,1.0,1.0,.5);
    for (k=-1;k<=box;k+=2)
       Wall(-4,0,1.5, 90,90*k , 2*8,2*8,2*box?6:2 , 4);
    //  Crate texture for walls
@@ -384,24 +384,25 @@ void Scene(int light)
 
    glActiveTexture(GL_TEXTURE2);
    glBindTexture(GL_TEXTURE_2D, tex2d[6]);
-   int color[3] = {1,1,1};
 
-   //double quad1[4][4][3] = {{{0,-2,0},{0,-1.4,0},{-3.7,-1.4,0},{-3.7,-2,0}},{{-1.7,-1,0},{-1.3,-1.4,0},{-3.2,-1.4,0},{-2.65,-1,0}},{{-3.7,-2,0},{-3.7,-1.4,0},{-3.7,-1.4,-.8},{-3.7,-2,-.8}},{{0,-2,0},{0,-1.4,0},{0,-1.4,-.8},{0,-2,-.8}}}; //quads for light 1/3
-   //double quad2[4][4][3] = {{{0,-2,-.8},{0,-1.4,-.8},{-3.7,-1.4,-.8},{-3.7,-2,-.8}},{{-1.7,-1,-.8},{-1.3,-1.4,-.8},{-3.2,-1.4,-.8},{-2.65,-1,-.8}},{{-3.7,-2,0},{-3.7,-1.4,0},{-3.7,-1.4,-.8},{-3.7,-2,-.8}},{{0,-2,0},{0,-1.4,0},{0,-1.4,-.8},{0,-2,-.8}}}; //quads for light 2
-
-   double quad1[4][4][3] = {{{x,-2,0},{x,-1.4,0},{-3.7+x,-1.4,0},{-3.7+x,-2,0}},{{-1.7 + x,-1,0},{-1.3+x,-1.4,0},{-3.2+x,-1.4,0},{-2.65+x,-1,0}},{{-3.7+x,-2,0},{-3.7+x,-1.4,0},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{0+x,-2,0},{0+x,-1.4,0},{0+x,-1.4,-.8},{0+x,-2,-.8}}}; //quads for light 1/3
+   // QUADS FOR ROAD SHADOWS
+   double quad1[4][4][3] = {{{x,-2,0},{x,-1.4,0},{-3.7+x,-1.4,0},{-3.7+x,-2,0}},{{-1.7 + x,-1,0},{-1.3+x,-1.4,0},{-3.2+x,-1.4,0},{-2.65+x,-1,0}},{{-3.7+x,-2,0},{-3.7+x,-1.4,0},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{0+x,-2,0},{0+x,-1.4,0},{0+x,-1.4,-.8},{0+x,-2,-.8}}}; //quads for light 1
    double quad2[4][4][3] = {{{x,-2,-.8},{x,-1.4,-.8},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{-1.7 +x,-1,-.8},{-1.3+x,-1.4,-.8},{-3.2+x,-1.4,-.8},{-2.65+x,-1,-.8}},{{-3.7+x,-2,0},{-3.7+x,-1.4,0},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{0+x,-2,0},{0+x,-1.4,0},{0+x,-1.4,-.8},{0+x,-2,-.8}}}; //quads for light 2
+   double quad3[4][4][3] = {{{x,-2,0},{x,-1.4,0},{-3.7+x,-1.4,0},{-3.7+x,-2,0}},{{-1.7 + x,-1,0},{-1.3+x,-1.4,0},{-3.2+x,-1.4,0},{-2.65+x,-1,0}},{{-3.7+x,-2,0},{-3.7+x,-1.4,0},{-3.7+x,-1.4,-.8},{-3.7+x,-2,-.8}},{{0+x,-2,0},{0+x,-1.4,0},{0+x,-1.4,-.8},{0+x,-2,-.8}}}; //quads for light 3
+
+   //QUADS FOR SIDEWALK SHADOWS
+   double quad1s[2][4][3] = {{{-4.95,-1.89,-7.5},{-4.95,-1.35,-7.5},{-4.95,-1.35,-8},{-4.95,-1.89,-8}},{{-1,-1.89,-6.6},{-1,-1.35,-6.6},{-1,-1.35,-7},{-1,-1.89,-7}}};
+   double quad3s[4][4][3] = {{{-4.95,-1.89,-7.5},{-4.95,-1.35,-7.5},{-4.95,-1.35,-8},{-4.95,-1.89,-8}},{{-1,-1.89,-6.6},{-1,-1.35,-6.6},{-1,-1.35,-7},{-1,-1.89,-7}},{{-13.5,-1.89,-6.6},{-13.5,-1.35,-6.6},{-13.5,-1.35,-7},{-13.5,-1.89,-7}},{{-2.6,-1.89,2.45},{-2.6,-1.35,2.45},{-2.6,-1.35,2.0},{-2.6,-1.89,2.0}}};
 
    double shadow[4][3];
    int i;
    int j;
+
    double O1[3] = {Lpos[0],Lpos[1],Lpos[2]};
 
    for (i = 0; i < 4; i++){ //quads
       for (j = 0; j < 4; j++){ //points
          double D1[3] = {quad1[i][j][0] - O1[0], quad1[i][j][1] - O1[1],quad1[i][j][2] - O1[2]};
-         double lengthVec = sqrt(D1[0]*D1[0] + D1[1]*D1[1] + D1[2]*D1[2]);
-         double D1Normal[3] = {D1[0]/lengthVec, D1[1]/lengthVec, D1[2]/lengthVec};
          double vectorTime = (-1.99 - O1[1])/D1[1];
          double P1[3] = {O1[0] + D1[0]*vectorTime, -1.99, O1[2] + D1[2]*vectorTime};
          shadow[j][0] = P1[0];
@@ -409,19 +410,61 @@ void Scene(int light)
          shadow[j][2] = P1[2];
       }
       //glDisable(GL_DEPTH_TEST);
-			glColor4f(1.0,1.0,1.0,1);
+      float myColor = x;
+      if (x < 4){
+        myColor += 10;
+        //x ranges from 0 -> 14
+        myColor = myColor / 14;
+      } else { //x greater than 4
+        myColor = x - 4;
+        myColor = myColor / 6;
+        myColor = 1 - myColor;
+      }
+			glColor4f(myColor,myColor,myColor,.1);
 
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_DST_COLOR);
 
 		  glEnable(GL_BLEND);
-      glClearColor(0.0,0.0,0.0,0.0);
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+      //glClearColor(0.0,0.0,0.0,0.0);
       glBegin(GL_QUADS);
-			glColor4f(.2,.2,.2,.5);
-
+			glColor4f(.1,.1,.1,.2);
       glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
       glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
       glVertex3f(shadow[2][0],shadow[2][1],shadow[2][2]);
       glVertex3f(shadow[3][0],shadow[3][1],shadow[3][2]);
+      glEnd();
+      glDisable(GL_BLEND);
+      //glEnable(GL_DEPTH_TEST);
+
+   }
+
+   //shadows for sidewalk light 1
+   for (i = 0; i < 2; i++){ //quads
+      for (j = 0; j < 4; j++){ //points
+         double D1s[3] = {quad1s[i][j][0] - O1[0], quad1s[i][j][1] - O1[1],quad1s[i][j][2] - O1[2]};
+         double vectorTime = (-1.89 - O1[1])/D1s[1];
+         double P1s[3] = {O1[0] + D1s[0]*vectorTime, -1.99, O1[2] + D1s[2]*vectorTime};
+         shadow[j][0] = P1s[0];
+         shadow[j][1] = P1s[1];
+         shadow[j][2] = P1s[2];
+      }
+      //glDisable(GL_DEPTH_TEST);
+
+
+      glColor4f(.8,.8,.8,.1);
+
+      glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_DST_COLOR);
+
+		  glEnable(GL_BLEND);
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+      //glClearColor(0.0,0.0,0.0,0.0);
+      glBegin(GL_QUADS);
+      glColor4f(.1,.1,.1,.2);
+      glVertex3f(shadow[0][0],-1.88,shadow[0][2]);
+      glVertex3f(shadow[1][0],-1.88,shadow[1][2]);
+      glVertex3f(shadow[2][0],-1.88,shadow[2][2]);
+      glVertex3f(shadow[3][0],-1.88,shadow[3][2]);
       glEnd();
       glDisable(GL_BLEND);
       //glEnable(GL_DEPTH_TEST);
@@ -433,37 +476,54 @@ void Scene(int light)
    for (i = 0; i < 4; i++){ //quads
       for (j = 0; j < 4; j++){ //points
          double D2[3] = {quad2[i][j][0] - O2[0], quad2[i][j][1] - O2[1],quad2[i][j][2] - O2[2]};
-         double lengthVec = sqrt(D2[0]*D2[0] + D2[1]*D2[1] + D2[2]*D2[2]);
-         double D2Normal[3] = {D2[0]/lengthVec, D2[1]/lengthVec, D2[2]/lengthVec};
+
          double vectorTime = (-1.99 - O2[1])/D2[1];
          double P2[3] = {O2[0] + D2[0]*vectorTime, -1.99, O2[2] + D2[2]*vectorTime};
          shadow[j][0] = P2[0];
          shadow[j][1] = P2[1];
          shadow[j][2] = P2[2];
       }
-      //glDisable(GL_DEPTH_TEST);
-      glColor3f(0,0,0);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glBegin(GL_QUADS);
 
-      glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
-      glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
-      glVertex3f(shadow[2][0],shadow[2][1],shadow[2][2]);
-      glVertex3f(shadow[3][0],shadow[3][1],shadow[3][2]);
+      float myColor = x;
+      if (x < 4){
+        myColor += 10;
+        //x ranges from 0 -> 14
+        myColor = myColor / 14;
+      } else { //x greater than 4
+        myColor = x - 4;
+        myColor = myColor / 6;
+        myColor = 1 - myColor;
+      }
+      glColor4f(myColor,myColor,myColor,.1);
+
+      //glColor4f(1.0,1.0,1.0,.1);
+
+      glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_DST_COLOR);
+
+		  glEnable(GL_BLEND);
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);;
+
+      glClearColor(0.0,0.0,0.0,0.0);
+      glBegin(GL_QUADS);
+			glColor4f(.1,.1,.1,.2);
+
+      glVertex3f(shadow[0][0],-1.98,shadow[0][2]);
+      glVertex3f(shadow[1][0],-1.98,shadow[1][2]);
+      glVertex3f(shadow[2][0],-1.98,shadow[2][2]);
+      glVertex3f(shadow[3][0],-1.98,shadow[3][2]);
+
+
       glEnd();
-      //glDisable(GL_BLEND);
-      //glEnable(GL_DEPTH_TEST);
+      glDisable(GL_BLEND);
 
    }
-/*
+
    double O3[3] = {Lpos2[0],Lpos2[1],Lpos2[2]};
 
    for (i = 0; i < 4; i++){ //quads
       for (j = 0; j < 4; j++){ //points
-         double D3[3] = {quad1[i][j][0] - O3[0], quad1[i][j][1] - O3[1],quad1[i][j][2] - O3[2]};
-         double lengthVec = sqrt(D3[0]*D3[0] + D3[1]*D3[1] + D3[2]*D3[2]);
-         double D3Normal[3] = {D3[0]/lengthVec, D3[1]/lengthVec, D3[2]/lengthVec};
+         double D3[3] = {quad3[i][j][0] - O3[0], quad3[i][j][1] - O3[1],quad3[i][j][2] - O3[2]};
+
          double vectorTime = (-1.99 - O3[1])/D3[1];
          double P3[3] = {O3[0] + D3[0]*vectorTime, -1.99, O3[2] + D3[2]*vectorTime};
          shadow[j][0] = P3[0];
@@ -471,25 +531,90 @@ void Scene(int light)
          shadow[j][2] = P3[2];
       }
       //glDisable(GL_DEPTH_TEST);
-      glColor4f(0,0,0,0);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glBegin(GL_QUADS);
 
-      glVertex3f(shadow[0][0],shadow[0][1],shadow[0][2]);
-      glVertex3f(shadow[1][0],shadow[1][1],shadow[1][2]);
-      glVertex3f(shadow[2][0],shadow[2][1],shadow[2][2]);
-      glVertex3f(shadow[3][0],shadow[3][1],shadow[3][2]);
+      float myColor = x;
+      myColor += 10;
+      myColor = myColor / 20;
+      myColor = 1 - myColor;
+      myColor = myColor - .3;
+      glColor4f(myColor,myColor,myColor,.1);
+
+      //glColor4f(1.==0,1.0,1.0,1);
+
+      glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_DST_COLOR);
+
+		  glEnable(GL_BLEND);
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+      glClearColor(0.0,0.0,0.0,0.0);
+      glBegin(GL_QUADS);
+			glColor4f(.1,.1,.1,.2);
+
+      glVertex3f(shadow[0][0],-1.97,shadow[0][2]);
+      glVertex3f(shadow[1][0],-1.97,shadow[1][2]);
+      glVertex3f(shadow[2][0],-1.97,shadow[2][2]);
+      glVertex3f(shadow[3][0],-1.97,shadow[3][2]);
+
+
       glEnd();
       glDisable(GL_BLEND);
       //glEnable(GL_DEPTH_TEST);
 
    }
-*/
 
-  /*
+   //shadows for sidewalk light 3
+   for (i = 0; i < 4; i++){ //quads
+      for (j = 0; j < 4; j++){ //points
+         double D3s[3] = {quad3s[i][j][0] - O3[0], quad3s[i][j][1] - O3[1],quad3s[i][j][2] - O3[2]};
+
+         double vectorTime = (-1.89 - O1[1])/D3s[1];
+         double P3s[3] = {O3[0] + D3s[0]*vectorTime, -1.99, O3[2] + D3s[2]*vectorTime};
+         shadow[j][0] = P3s[0];
+         shadow[j][1] = P3s[1];
+         shadow[j][2] = P3s[2];
+      }
+      //glDisable(GL_DEPTH_TEST);
+      float myColor = x;
+      if (x < 4){
+        myColor += 10;
+        //x ranges from 0 -> 14
+        myColor = myColor / 14;
+      } else { //x greater than 4
+        myColor = x - 4;
+        myColor = myColor / 6;
+        myColor = 1 - myColor;
+      }
+      myColor = .8;
+      if (i == 1 || i == 3){
+         myColor = .5;
+      }
+      glColor4f(myColor,myColor,myColor,.1);
+
+      glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_DST_COLOR);
+
+		  glEnable(GL_BLEND);
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+      //glClearColor(0.0,0.0,0.0,0.0);
+      glBegin(GL_QUADS);
+      glColor4f(.1,.1,.1,.2);
+      glVertex3f(shadow[0][0],-1.88,shadow[0][2]);
+      glVertex3f(shadow[1][0],-1.88,shadow[1][2]);
+      glVertex3f(shadow[2][0],-1.88,shadow[2][2]);
+      glVertex3f(shadow[3][0],-1.88,shadow[3][2]);
+      glEnd();
+      glDisable(GL_BLEND);
+      //glEnable(GL_DEPTH_TEST);
+
+   }
+/*
 
    glBegin(GL_QUADS);
+
+
+   glVertex3f(quad1s[1][0][0],quad1s[1][0][1],quad1s[1][0][2]);
+   glVertex3f(quad1s[1][1][0],quad1s[1][1][1],quad1s[1][1][2]);
+   glVertex3f(quad1s[1][2][0],quad1s[1][2][1],quad1s[1][2][2]);
+   glVertex3f(quad1s[1][3][0],quad1s[1][3][1],quad1s[1][3][2]);
+
    glVertex3f(quad1[0][0][0],quad1[0][0][1],quad1[0][0][2]);
    glVertex3f(quad1[0][1][0],quad1[0][1][1],quad1[0][1][2]);
    glVertex3f(quad1[0][2][0],quad1[0][2][1],quad1[0][2][2]);
@@ -499,6 +624,17 @@ void Scene(int light)
    glVertex3f(quad1[1][1][0],quad1[1][1][1],quad1[1][1][2]);
    glVertex3f(quad1[1][2][0],quad1[1][2][1],quad1[1][2][2]);
    glVertex3f(quad1[1][3][0],quad1[1][3][1],quad1[1][3][2]);
+
+
+   glVertex3f(quad1[2][0][0],quad1[2][0][1],quad1[2][0][2]);
+   glVertex3f(quad1[2][1][0],quad1[2][1][1],quad1[2][1][2]);
+   glVertex3f(quad1[2][2][0],quad1[2][2][1],quad1[2][2][2]);
+   glVertex3f(quad1[2][3][0],quad1[2][3][1],quad1[2][3][2]);
+
+   glVertex3f(quad1[3][0][0],quad1[3][0][1],quad1[3][0][2]);
+   glVertex3f(quad1[3][1][0],quad1[3][1][1],quad1[3][1][2]);
+   glVertex3f(quad1[3][2][0],quad1[3][2][1],quad1[3][2][2]);
+   glVertex3f(quad1[3][3][0],quad1[3][3][1],quad1[3][3][2]);
 
    glVertex3f(quad2[0][0][0],quad2[0][0][1],quad2[0][0][2]);
    glVertex3f(quad2[0][1][0],quad2[0][1][1],quad2[0][1][2]);
@@ -511,8 +647,7 @@ void Scene(int light)
    glVertex3f(quad2[1][3][0],quad2[1][3][1],quad2[1][3][2]);
 
    glEnd();
-
-  */
+*/
 
    glActiveTexture(GL_TEXTURE0);
 	 glBindTexture(GL_TEXTURE_2D, tex2d[18]);
@@ -533,7 +668,6 @@ void Scene(int light)
 void display()
 {
    int id;
-   const double len=2.0;
    //  Eye position
    float Ex = -2*dim*Sin(th)*Cos(ph);
    float Ey = +2*dim        *Sin(ph);
@@ -563,21 +697,8 @@ void display()
    gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
 
    //  Draw light position as sphere (still no lighting here)
-   glColor3f(1,1,1);
-   glPushMatrix();
-   glTranslated(Lpos[0],Lpos[1],Lpos[2]);
-   glutSolidSphere(0.03,10,10);
-   glPopMatrix();
 
-	 glPushMatrix();
-   glTranslated(Lpos1[0],Lpos1[1],Lpos1[2]);
-   glutSolidSphere(0.03,10,10);
-   glPopMatrix();
 
-   glPushMatrix();
-   glTranslated(Lpos2[0],Lpos2[1],Lpos2[2]);
-   glutSolidSphere(0.03,10,10);
-   glPopMatrix();
    glUseProgram(shader2);
 
    //  Enable shader program
@@ -606,26 +727,7 @@ void display()
    //  Disable shader program
    glUseProgram(0);
 
-   //  Draw axes (white)
-   glColor3f(1,1,1);
-   if (axes)
-   {
-      glBegin(GL_LINES);
-      glVertex3d(0.0,0.0,0.0);
-      glVertex3d(len,0.0,0.0);
-      glVertex3d(0.0,0.0,0.0);
-      glVertex3d(0.0,len,0.0);
-      glVertex3d(0.0,0.0,0.0);
-      glVertex3d(0.0,0.0,len);
-      glEnd();
-      //  Label axes
-      glRasterPos3d(len,0.0,0.0);
-      Print("X");
-      glRasterPos3d(0.0,len,0.0);
-      Print("Y");
-      glRasterPos3d(0.0,0.0,len);
-      Print("Z");
-   }
+
 
    //
    //  Show the shadow map
@@ -688,7 +790,6 @@ void ShadowMap(void)
    double Tproj[16];   //  Texture projection matrix
    double Dim=7.0;     //  Bounding radius of scene
    double Ldist;       //  Distance from light to scene center
-	 double Ldist1; 		 // Distance from light 1 to scene center
    //  Save transforms and modes
    glPushMatrix();
    glPushAttrib(GL_TRANSFORM_BIT|GL_ENABLE_BIT);
@@ -750,71 +851,7 @@ void ShadowMap(void)
    glPopAttrib();
    glPopMatrix();
    glBindFramebuffer(GL_FRAMEBUFFER,0);
-/*
-	 //Now for light 1
-	 //  Save transforms and modes
-	 glPushMatrix();
-	 glPushAttrib(GL_TRANSFORM_BIT|GL_ENABLE_BIT);
-	 //  No write to color buffer and no smoothing
-	 glShadeModel(GL_FLAT);
-	 glColorMask(0,0,0,0);
-	 // Overcome imprecision
-	 glEnable(GL_POLYGON_OFFSET_FILL);
 
-	 //  Turn off lighting and set light position
-	 Light(0);
-
-	 //  Light distance
-	 Ldist1 = sqrt(Lpos1[0]*Lpos1[0] + Lpos1[1]*Lpos1[1] + Lpos1[2]*Lpos1[2]);
-	 if (Ldist1<1.1*Dim) Ldist1 = 1.1*Dim;
-
-	 //  Set perspective view from light position
-	 glMatrixMode(GL_PROJECTION);
-	 glLoadIdentity();
-	 gluPerspective(114.6*atan(Dim/Ldist1),1,Ldist1-Dim,Ldist1+Dim);
-	 glMatrixMode(GL_MODELVIEW);
-	 glLoadIdentity();
-	 gluLookAt(Lpos1[0],Lpos1[1],Lpos1[2] , 0,0,0 , 0,1,0);
-	 //  Size viewport to desired dimensions
-	 glViewport(0,0,shadowdim,shadowdim);
-
-	 // Redirect traffic to the frame buffer
-	 glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
-
-	 // Clear the depth buffer
-	 glClear(GL_DEPTH_BUFFER_BIT);
-	 // Draw all objects that can cast a shadow
-	 Scene(0);
-
-	 //  Retrieve light projection and modelview matrices
-	 glGetDoublev(GL_PROJECTION_MATRIX,Lproj);
-	 glGetDoublev(GL_MODELVIEW_MATRIX,Lmodel);
-
-	 // Set up texture matrix for shadow map projection,
-	 // which will be rolled into the eye linear
-	 // texture coordinate generation plane equations
-	 glLoadIdentity();
-	 glTranslated(0.5,0.5,0.5);
-	 glScaled(0.5,0.5,0.5);
-	 glMultMatrixd(Lproj);
-	 glMultMatrixd(Lmodel);
-
-	 // Retrieve result and transpose to get the s, t, r, and q rows for plane equations
-	 glGetDoublev(GL_MODELVIEW_MATRIX,Tproj);
-	 Svec[0] = Tproj[0];    Tvec[0] = Tproj[1];    Rvec[0] = Tproj[2];    Qvec[0] = Tproj[3];
-	 Svec[1] = Tproj[4];    Tvec[1] = Tproj[5];    Rvec[1] = Tproj[6];    Qvec[1] = Tproj[7];
-	 Svec[2] = Tproj[8];    Tvec[2] = Tproj[9];    Rvec[2] = Tproj[10];   Qvec[2] = Tproj[11];
-	 Svec[3] = Tproj[12];   Tvec[3] = Tproj[13];   Rvec[3] = Tproj[14];   Qvec[3] = Tproj[15];
-
-	 // Restore normal drawing state
-	 glShadeModel(GL_SMOOTH);
-	 glColorMask(1,1,1,1);
-	 glDisable(GL_POLYGON_OFFSET_FILL);
-	 glPopAttrib();
-	 glPopMatrix();
-	 //glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-*/
    //  Check if something went wrong
    ErrCheck("ShadowMap");
 }
@@ -825,7 +862,6 @@ void ShadowMap(void)
 void InitMap()
 {
    unsigned int shadowtex; //  Shadow buffer texture id
-	 unsigned int shadowtex1;
    int n;
 
    //  Make sure multi-textures are supported
@@ -896,7 +932,6 @@ void idle(int k)
    if (lastTime == -1){
      lastTime = t;
    }
-   float dt2 = t - lastTime;
    zh = fmod(90*t,1440.0);
 
    //  Update shadow map
