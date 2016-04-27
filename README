@@ -1,13 +1,15 @@
-CSCI 4239 Final Project City Scene
+Eric Lindemann CSCI 4239 Final Project City Scene
 
-Based on Willem Schreuder's ex05 from Fall 2014
-Willem A. (Vlakkies) Schreuder
+Based on Willem Schreuder's ex05 from Fall 2014 but heavily edited (removed shadow maps)
 
-with Frame Buffer Depth Texture by Jay Kominek
+Things to notice:
+Normal Mapped most objects
+Multiple shadows using real world technique (much faster than shadow mapping)
+Shadows move with car, shadows dim as they get further from light source
+Cool objects (car, bike, light post, hydrant, buildings with windows/door)
 
 to run:
 make
-./ex05
+./final
 
-things to add:
-I am meeting with Stanislaw tomorrow to try to get shadows from multiple lights working. I intend to fix the small bugs (shadow showing on building). I plan to add a few more textures, more objects and normal maps (on lamp post, trash can, hydrant).
+

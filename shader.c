@@ -1,7 +1,7 @@
 //  If your version of OpenGL requires extentions to
 //  access the various functions, add them here
 
-#include "CSCIx239.h"
+#include "final.h"
 
 //
 //  Read text file

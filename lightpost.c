@@ -1,4 +1,4 @@
-#include "CSCIx239.h"
+#include "final.h"
 
 void LightPostCone(double x, double y, double z, double dx, double dy, double dz, double th)
 {
@@ -115,7 +115,7 @@ void Lightpost(double x, double y, double z, double dx, double dy, double dz, do
 
 
 
-	glColor3f(1,1,.5);
+	glColor3f(1,1,1);
 	ball(-1,4,0,.2);
 
 	glPopMatrix();

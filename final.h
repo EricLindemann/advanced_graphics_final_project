@@ -1,5 +1,5 @@
-#ifndef CSCIx239
-#define CSCIx239
+#ifndef final
+#define final
 
 #include <stdio.h>
 #include <stdlib.h>

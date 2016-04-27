@@ -1,4 +1,4 @@
-#include "CSCIx239.h"
+#include "final.h"
 
 //Draw trashcan
 void Trash(double x, double y, double z, double dx, double dy, double dz, double th)

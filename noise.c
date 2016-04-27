@@ -3,7 +3,7 @@
  * (copyright Ken Perlin)
  */
 
-#include "CSCIx239.h"
+#include "final.h"
 
 const int size = 64;
 

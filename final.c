@@ -19,7 +19,7 @@
  *  0          Reset view angle
  *  ESC        Exit
  */
-#include "CSCIx239.h"
+#include "final.h"
 typedef struct {float x,y,z;} Point;
 //  Global variables
 int          mode=0;    // Display mode
@@ -250,7 +250,7 @@ void Scene(int light)
 	 Building(-18,-2.0,-9.5,1,.5,1,0,0);
 
 	 glActiveTexture(GL_TEXTURE0);
-	 glBindTexture(GL_TEXTURE_2D,tex2d[6]);
+	 glBindTexture(GL_TEXTURE_2D,tex2d[2]);
    glActiveTexture(GL_TEXTURE2);
    glBindTexture(GL_TEXTURE_2D,tex2d[6]);
    float x = -10 + time1*4;
@@ -265,7 +265,7 @@ void Scene(int light)
    Cylinder(-2,2.8,-9,.02,.02,1,90,0);
 
    glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D,tex2d[6]);
+   glBindTexture(GL_TEXTURE_2D,tex2d[2]);
    glActiveTexture(GL_TEXTURE2);
 	 glBindTexture(GL_TEXTURE_2D,tex2d[10]);
 	 Lightpost(1.5,-1.2,-6.6,.5,.5,.5,90,1);
@@ -685,7 +685,7 @@ void display()
    if (mode)
    {
       //  Half width for shadow map display
-      Project(60,asp/2,dim);
+      Project(60,asp,dim);
       glViewport(0,0,Width/2,Height);
    }
    else
@@ -771,8 +771,8 @@ void display()
    //  Display parameters
    glColor3f(1,1,1);
    glWindowPos2i(5,5);
-   Print("Ylight=%.1f Angle=%d,%d,%d  Dim=%.1f Slices=%d Mode=%s",
-     Ylight,th,ph,zh,dim,n,text[mode]);
+   //Print("Ylight=%.1f Angle=%d,%d,%d  Dim=%.1f Slices=%d Mode=%s",
+     //Ylight,th,ph,zh,dim,n,text[mode]);
 
    //  Render the scene and make it visible
    ErrCheck("display");
@@ -783,142 +783,7 @@ void display()
 /*
  *  Build Shadow Map
  */
-void ShadowMap(void)
-{
-   double Lmodel[16];  //  Light modelview matrix
-   double Lproj[16];   //  Light projection matrix
-   double Tproj[16];   //  Texture projection matrix
-   double Dim=7.0;     //  Bounding radius of scene
-   double Ldist;       //  Distance from light to scene center
-   //  Save transforms and modes
-   glPushMatrix();
-   glPushAttrib(GL_TRANSFORM_BIT|GL_ENABLE_BIT);
-   //  No write to color buffer and no smoothing
-   glShadeModel(GL_FLAT);
-   glColorMask(0,0,0,0);
-   // Overcome imprecision
-   glEnable(GL_POLYGON_OFFSET_FILL);
 
-   //  Turn off lighting and set light position
-   Light(0);
-
-   //  Light distance
-   Ldist = sqrt(Lpos[0]*Lpos[0] + Lpos[1]*Lpos[1] + Lpos[2]*Lpos[2]);
-   if (Ldist<1.1*Dim) Ldist = 1.1*Dim;
-
-   //  Set perspective view from light position
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   gluPerspective(114.6*atan(Dim/Ldist),1,Ldist-Dim,Ldist+Dim);
-   glMatrixMode(GL_MODELVIEW);
-   glLoadIdentity();
-   gluLookAt(Lpos[0],Lpos[1],Lpos[2] , 0,0,0 , 0,1,0);
-   //  Size viewport to desired dimensions
-   glViewport(0,0,shadowdim,shadowdim);
-
-   // Redirect traffic to the frame buffer
-   glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
-
-   // Clear the depth buffer
-   glClear(GL_DEPTH_BUFFER_BIT);
-   // Draw all objects that can cast a shadow
-   Scene(0);
-
-   //  Retrieve light projection and modelview matrices
-   glGetDoublev(GL_PROJECTION_MATRIX,Lproj);
-   glGetDoublev(GL_MODELVIEW_MATRIX,Lmodel);
-
-   // Set up texture matrix for shadow map projection,
-   // which will be rolled into the eye linear
-   // texture coordinate generation plane equations
-   glLoadIdentity();
-   glTranslated(0.5,0.5,0.5);
-   glScaled(0.5,0.5,0.5);
-   glMultMatrixd(Lproj);
-   glMultMatrixd(Lmodel);
-
-   // Retrieve result and transpose to get the s, t, r, and q rows for plane equations
-   glGetDoublev(GL_MODELVIEW_MATRIX,Tproj);
-   Svec[0] = Tproj[0];    Tvec[0] = Tproj[1];    Rvec[0] = Tproj[2];    Qvec[0] = Tproj[3];
-   Svec[1] = Tproj[4];    Tvec[1] = Tproj[5];    Rvec[1] = Tproj[6];    Qvec[1] = Tproj[7];
-   Svec[2] = Tproj[8];    Tvec[2] = Tproj[9];    Rvec[2] = Tproj[10];   Qvec[2] = Tproj[11];
-   Svec[3] = Tproj[12];   Tvec[3] = Tproj[13];   Rvec[3] = Tproj[14];   Qvec[3] = Tproj[15];
-
-   // Restore normal drawing state
-   glShadeModel(GL_SMOOTH);
-   glColorMask(1,1,1,1);
-   glDisable(GL_POLYGON_OFFSET_FILL);
-   glPopAttrib();
-   glPopMatrix();
-   glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-   //  Check if something went wrong
-   ErrCheck("ShadowMap");
-}
-
-/*
- *
- */
-void InitMap()
-{
-   unsigned int shadowtex; //  Shadow buffer texture id
-   int n;
-
-   //  Make sure multi-textures are supported
-   glGetIntegerv(GL_MAX_TEXTURE_UNITS,&n);
-   if (n<2) Fatal("Multiple textures not supported\n");
-
-   //  Get maximum texture buffer size
-   glGetIntegerv(GL_MAX_TEXTURE_SIZE,&shadowdim);
-   //  Limit texture size to maximum buffer size
-   glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,&n);
-   if (shadowdim>n) shadowdim = n;
-   //  Limit texture size to 2048 for performance
-   if (shadowdim>2048) shadowdim = 2048;
-   if (shadowdim<512) Fatal("Shadow map dimensions too small %d\n",shadowdim);
-
-   //  Do Shadow textures in MultiTexture 1
-   glActiveTexture(GL_TEXTURE1);
-
-   //  Allocate and bind shadow texture
-   glGenTextures(1,&shadowtex);
-   glBindTexture(GL_TEXTURE_2D,shadowtex);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowdim, shadowdim, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-   //  Map single depth value to RGBA (this is called intensity)
-   glTexParameteri(GL_TEXTURE_2D,GL_DEPTH_TEXTURE_MODE,GL_INTENSITY);
-
-   //  Set texture mapping to clamp and linear interpolation
-   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-
-   //  Set automatic texture generation mode to Eye Linear
-   glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-   glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-   glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-   glTexGeni(GL_Q,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-
-   // Switch back to default textures
-   glActiveTexture(GL_TEXTURE0);
-
-   // Attach shadow texture to frame buffer
-   glGenFramebuffers(1,&framebuf);
-   glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
-   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowtex, 0);
-   //  Don't write or read to visible color buffer
-   glDrawBuffer(GL_NONE);
-   glReadBuffer(GL_NONE);
-   //  Make sure this all worked
-   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) Fatal("Error setting up frame buffer\n");
-   glBindFramebuffer(GL_FRAMEBUFFER,0);
-   //  Check if something went wrong
-   ErrCheck("InitMap");
-
-   //  Create shadow map
-   ShadowMap();
-}
 
 /*
  *  GLUT calls this routine when nothing else is going on
@@ -934,8 +799,6 @@ void idle(int k)
    }
    zh = fmod(90*t,1440.0);
 
-   //  Update shadow map
-   ShadowMap();
    //  Tell GLUT it is necessary to redisplay the scene
    glutPostRedisplay();
    //  Schedule update
@@ -947,9 +810,11 @@ void idle(int k)
 /*
  *  GLUT calls this routine when an arrow key is pressed
  */
+
 void special(int key,int x,int y)
 {
-   //  Right arrow key - increase angle by 5 degrees
+
+   /*//  Right arrow key - increase angle by 5 degrees
    if (key == GLUT_KEY_RIGHT)
       th += 1;
    //  Left arrow key - decrease angle by 5 degrees
@@ -965,11 +830,14 @@ void special(int key,int x,int y)
    else if (key == GLUT_KEY_PAGE_DOWN)
       dim += 0.1;
    //  PageDown key - decrease dim
+
    else if (key == GLUT_KEY_PAGE_UP && dim>1)
       dim -= 0.1;
+*/
    //  Keep angles to +/-360 degrees
    th %= 360;
    ph %= 360;
+
    //  Tell GLUT it is necessary to redisplay the scene
    glutPostRedisplay();
 }
@@ -1020,9 +888,9 @@ void key(unsigned char ch,int x,int y)
    //  Restart animation
    if ((ch =='s' || ch == 'S') && move) glutTimerFunc(dt,idle,0);
    //  Update screen size when mode changes
-   if (ch == 'm' || ch == 'M') glutReshapeWindow(mode?2*Width:Width/2,Height);
+  // if (ch == 'm' || ch == 'M') glutReshapeWindow(mode?2*Width:Width/2,Height);
    //  Update shadow map if light position or objects changed
-   if (strchr("<>oO-+[]",ch)) ShadowMap();
+  // if (strchr("<>oO-+[]",ch)) ShadowMap();
    //  Tell GLUT it is necessary to redisplay the scene
    glutPostRedisplay();
 }
@@ -1049,7 +917,7 @@ int main(int argc,char* argv[])
    //  Request double buffered, true color window with Z buffering at 600x600
    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
    glutInitWindowSize(600,600);
-   glutCreateWindow("Shadow Map Shader");
+   glutCreateWindow("Lindemann");
 #ifdef USEGLEW
    //  Initialize GLEW
    if (glewInit()!=GLEW_OK) Fatal("Error initializing GLEW\n");
@@ -1092,9 +960,8 @@ int main(int argc,char* argv[])
    //  Initialize texture map
    shader = CreateShaderProg("shadow.vert","shadow.frag");
    //  Initialize texture map
-   InitMap();
+
    //  Pass control to GLUT so it can interact with the user
-   ErrCheck("init");
    glutMainLoop();
    return 0;
 }

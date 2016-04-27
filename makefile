@@ -1,5 +1,5 @@
 # Example 05
-EXE=ex05
+EXE=final
 
 # Main target
 all: $(EXE)
@@ -24,29 +24,29 @@ CLEAN=rm -f $(EXE) *.o *.a
 endif
 
 # Dependencies
-ex05.o: ex05.c CSCIx239.h
-fatal.o: fatal.c CSCIx239.h
-loadtexbmp.o: loadtexbmp.c CSCIx239.h
-print.o: print.c CSCIx239.h
-project.o: project.c CSCIx239.h
-errcheck.o: errcheck.c CSCIx239.h
-object.o: object.c CSCIx239.h
-fps.o: fps.c CSCIx239.h
-elapsed.o: elapsed.c CSCIx239.h
-shader.o: shader.c CSCIx239.h
-noise.o: noise.c CSCIx239.h
-bicycle.o: bicycle.c CSCIx239.h
-sidewalk.o: sidewalk.c CSCIx239.h
-trash.o: trash.c CSCIx239.h
-lightpost.o: lightpost.c CSCIx239.h
-car.o: car.c CSCIx239.h
-fireHydrant.o: fireHydrant.c CSCIx239.h
-building.o: building.c CSCIx239.h
-door.o: door.c CSCIx239.h
-window.o: window.c CSCIx239.h
-skyBox.o: skyBox.c CSCIx239.h
+final.o: final.c final.h
+fatal.o: fatal.c final.h
+loadtexbmp.o: loadtexbmp.c final.h
+print.o: print.c final.h
+project.o: project.c final.h
+errcheck.o: errcheck.c final.h
+object.o: object.c final.h
+fps.o: fps.c final.h
+elapsed.o: elapsed.c final.h
+shader.o: shader.c final.h
+noise.o: noise.c final.h
+bicycle.o: bicycle.c final.h
+sidewalk.o: sidewalk.c final.h
+trash.o: trash.c final.h
+lightpost.o: lightpost.c final.h
+car.o: car.c final.h
+fireHydrant.o: fireHydrant.c final.h
+building.o: building.c final.h
+door.o: door.c final.h
+window.o: window.c final.h
+skyBox.o: skyBox.c final.h
 #  Create archive
-CSCIx239.a:fatal.o loadtexbmp.o print.o project.o errcheck.o object.o fps.o elapsed.o shader.o noise.o bicycle.o sidewalk.o trash.o lightpost.o car.o fireHydrant.o building.o door.o window.o skyBox.o
+final.a:fatal.o loadtexbmp.o print.o project.o errcheck.o object.o fps.o elapsed.o shader.o noise.o bicycle.o sidewalk.o trash.o lightpost.o car.o fireHydrant.o building.o door.o window.o skyBox.o
 	ar -rcs $@ $^
 
 # Compile rules
@@ -56,7 +56,7 @@ CSCIx239.a:fatal.o loadtexbmp.o print.o project.o errcheck.o object.o fps.o elap
 	g++ -c $(CFLG) $<
 
 #  Link
-ex05:ex05.o CSCIx239.a
+final:final.o final.a
 	gcc -O3 -o $@ $^   $(LIBS)
 
 #  Clean

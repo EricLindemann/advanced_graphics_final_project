@@ -1,7 +1,7 @@
 /*
  *  Check for OpenGL errors
  */
-#include "CSCIx239.h"
+#include "final.h"
 
 void ErrCheck(const char* where)
 {
